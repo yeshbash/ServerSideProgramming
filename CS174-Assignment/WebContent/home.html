@@ -1,0 +1,152 @@
+<html>
+<head>
+	<style type="text/css">
+		table {
+			border=2;
+			font-family: arial, sans-serif;
+			border-collapse: collapse;
+			width: 100%;
+		}
+		
+		td, th {
+			border: 1px solid #dddddd;
+			text-align: left;
+			padding: 8px;
+		}
+		.aircraft_img{
+			height: 120;
+			width : 65;
+		}
+			
+		}
+	</style>
+	<script type="text/javascript">
+	
+	//Utility Function to fetch text value of a node. Returns blank string for empty tags.
+	function getTextValue(tNode){
+		var returnValue = String("")
+		if( typeof (tNode.childNodes[0]) != "undefined" )
+			returnValue =  tNode.childNodes[0].nodeValue;	
+		
+		return returnValue;
+	}
+	
+	//Generates table header based on XML Header Tag.
+	function generateTableHeader(headerNode,targetWin){
+		headerData = headerNode.getElementsByTagName("Data");
+		var headerLine = String("<tr>");
+		for(idx = 0; idx < headerData.length; idx++){
+			headerLine+="<th>"+getTextValue(headerData[idx])+"</th>";
+		}
+		headerLine+="</tr>";
+		targetWin.document.write(headerLine);
+	}
+	
+	//Generates table row based on XML Row Tag
+	function generateTableRow(rowNode,targetWin){
+		
+		// Validation for No Airline Information in XML
+		if(!rowNode || rowNode.length==0){
+			targetWin.alert("No airline information in input XML");
+			targetWin.close()
+			return;
+		}
+		
+		for(idx = 0; idx < rowNode.length; idx++){
+			rowElements = rowNode[idx].childNodes;
+			targetWin.document.write("<tr>")
+			for(elementIndex =0; elementIndex< rowElements.length; elementIndex++){
+				elmt = rowElements[elementIndex];
+				
+				switch(elmt.nodeName){
+				case "Airline":
+				case "IATA":
+				case "Notes":
+					targetWin.document.write("<td>"+getTextValue(elmt)+"</td>");	
+					break;
+				case "Hubs":
+					hubs = elmt.childNodes;
+					targetWin.document.write("<td><ul>");
+					for(hubIndex =0; hubIndex < hubs.length; hubIndex++){
+						if(hubs[hubIndex].nodeName=="Hub"){
+							targetWin.document.write("<li>"+ getTextValue(hubs[hubIndex]));	
+						}
+						
+					}
+					targetWin.document.write("</ul></td>")
+					break;
+				case "HomePage":
+					link = getTextValue(elmt);
+					targetWin.document.write("<td><a href='"+link+"'>"+link+"</a>");
+					break;
+				case "Plane":
+					targetWin.document.write("<td><img height = '200' width= '300' src='"+getTextValue(elmt)+"'/>");
+					break;
+				}
+			}
+			targetWin.document.write("</tr>")
+		}
+	}
+	
+	//Prepares HTML from XML
+	function processXML(xmlRoot,targetWin){
+		
+		//Create Table Structure
+		targetWin.document.write("<table border='2' width='100%'>");
+		
+		//Generate Table Headers
+		headerData = xmlRoot.getElementsByTagName("Header")[0];
+		generateTableHeader(headerData,targetWin);
+		
+		//Generate Table Data
+		rowNodes = xmlRoot.getElementsByTagName("Row");
+		generateTableRow(rowNodes,targetWin);
+		targetWin.document.write("<table>");
+	}
+	
+	function fetchXML(){
+			var xmlhttp;
+			url = document.getElementById("input.url").value;
+			
+			// Empty URL check
+			if(!url){
+				window.alert("Enter XML file location");
+				return;
+			}
+			if (window.XMLHttpRequest) {
+				xmlhttp = new XMLHttpRequest();
+			} else {
+				xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+			}
+			
+			xmlhttp.onreadystatechange = function(){
+				
+				if(xmlhttp.readyState == 4 && xmlhttp.status==404){
+					window.alert("XML file not found")
+				}
+				
+				if(xmlhttp.readyState == 4 && xmlhttp.status==200){
+					//document.write(xmlhttp.responseText);
+					var popupwindow = window.open("","AirlineInfo","height=800,width=800");
+					popupwindow.document.title = "Airline Information";
+					processXML(xmlhttp.responseXML,popupwindow);
+				}
+			};
+			
+			xmlhttp.open("GET",url,false);
+			xmlhttp.send(); //properties of XMLHTTPRequest 
+			
+			return
+	}	
+	</script>
+</head>
+<body>
+<div id = "input.div" align = "center">
+<h3>Enter URL for airlines list XML file</h3><br>
+	<form id="fetchxml">
+		<input id = "input.url"/><br><br>
+		<button id ="sumbit" onclick="fetchXML()">Sumbit Query</button><br>
+	</form>
+</div>
+</body>
+</html>
