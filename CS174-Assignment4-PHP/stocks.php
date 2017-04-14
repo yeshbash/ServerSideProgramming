@@ -91,6 +91,19 @@
         return false;
       return true;
     }
+
+    function onClear(){
+      document.getElementById("search_text").value="";
+
+      var status_div = document.getElementById("status_div");
+      var searchres_table = document.getElementById("searchres_table");
+      var quote_table = document.getElementById("quote_table");
+
+      if(status_div)  status_div.style.display="none";
+      if(searchres_table) searchres_table.style.display="none";
+      if(quote_table) quote_table.style.display="none";
+
+    }
   </script>
 <?php
 
@@ -144,9 +157,9 @@ function handle_stock_search($search_text){
       #print_r($xResp);
 
       if(!isset($xResp->LookupResult)){
-        echo "<div class='status_div'><p> No records found for the search term</p></div>";
+        echo "<div class='status_div' id='status_div'><p> No records found for the search term</p></div>";
       }else{
-        echo "<table class='quote_table'>";
+        echo "<table class='quote_table' id='quote_table'>";
         echo "<th>Name</th><th>Symbol</th><th>Exchange</th><th>Details</th>";
         foreach ($xResp->LookupResult as $resultItem) {
           echo "<tr>";
@@ -167,7 +180,7 @@ function handle_stock_quote($stock_symbol){
     $jResp = json_decode($sResp);
     if($jResp->Status == "SUCCESS"){
     ?>
-    <table class='searchres_table'>
+    <table class='searchres_table' id='searchres_table'>
         <tr><td class="quote_header">Name</td><td class="quote_data"><?php echo $jResp->Name?></td></tr>
         <tr><td class="quote_header">Symbol</td><td class="quote_data"><?php echo $jResp->Symbol?></td></tr>
         <tr><td class="quote_header">Last Price</td><td class="quote_data"><?php echo $jResp->LastPrice?></td></tr>
@@ -184,7 +197,7 @@ function handle_stock_quote($stock_symbol){
       </table>
     </div>
     <?php }else{
-        echo "<div class='status_div'><p> There is no stock information available</p></div>";
+        echo "<div class='status_div' id='status_div'><p> There is no stock information available</p></div>";
     }
   }
 }
@@ -192,12 +205,12 @@ function handle_stock_quote($stock_symbol){
 
 <body>
   <div class="search_div">
-    <p class="search_title">Stock Search</p><hr>
+    <p class="search_title">Stock Search</p><hr width="90%">
     <form action = <?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?> id="stock_search" name="stock_search" method="post">
       Company Name or Symbol : <input id="search_text" name="search_text" type="text" value="<?php echo $GLOBALS["search_text"] ?>"/>
       <input type="hidden" name="form_action" value="stock_search"/></br>
       <input type="button" class = "btn" value="Search" onclick="if(validateSearchBox()) document.getElementById('stock_search').submit(); else window.alert('Enter Company Name or Symbol');"/>
-      <input type="button" class = "btn" value="Clear" onclick="document.getElementById('search_text').value = ''"/><br>
+      <input type="button" class = "btn" value="Clear" onclick="onClear();"/><br>
       <a href="http://www.markit.com/product/markit-on-demand">Powered by Markit on Demand</a>
     </form>
   </div>
